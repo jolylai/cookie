@@ -1,4 +1,4 @@
-import Cookie from "../src/cookie";
+import Cookie from "../src/index";
 
 describe("js cookie", () => {
   test("should be defined", () => {

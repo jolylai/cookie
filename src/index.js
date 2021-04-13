@@ -1,75 +1,56 @@
+import { isNumber } from "./utils";
+
 const MS_IN_A_DAY = 24 * 60 * 60 * 1000;
 
-/**
- *
- * @param {Object} convert 转换器
- * @param {Object} defaultAttributes 默认属性
- */
-function init(convert, defaultAttributes) {
-  function set(key, value, attributes) {
-    attributes = Object.assign({}, defaultAttributes, attributes);
+function standardBrowserEnv() {
+  function set(name, value, attributes) {
+    const cookie = [];
 
-    if (typeof attributes.expires === "number") {
-      attributes.expires = new Date(
-        Date.now() + attributes.expires * MS_IN_A_DAY
-      );
-    }
-
-    if (attributes.expires) {
-      attributes.expires = attributes.expires.toUTCString();
-    }
-
-    key = decodeURIComponent(key);
-
+    name = decodeURIComponent(name);
     value = decodeURIComponent(value);
 
-    let stringifiedAttributs = "";
+    cookie.push(`${name}=${value}`);
 
     for (let attributeName in attributes) {
-      // 去除没有值的属性
-      if (!attributes[attributeName]) {
-        continue;
+      let attributeValue = attributes[attributeName];
+
+      if (attributeName === "expires") {
+        // 过期时间
+        if (isNumber(attributeValue)) {
+          attributeValue = new Date(Date.now() + attributeValue * MS_IN_A_DAY);
+        }
+
+        cookie.push(`expires=${attributeValue.toGMTString()}`);
       }
 
-      stringifiedAttributs += `;  ${attributeName}`;
-
-      if (attributes[attributeName] === true) {
-        continue;
+      if (attributeName === "path") {
+        cookie.push(`path=${attributeValue}`);
       }
 
-      stringifiedAttributs += `=${attributes[attributeName]}`;
+      if (attributeName === "domain") {
+        cookie.push(`domain=${attributeValue}`);
+      }
+
+      if (attributeName === "secure" && attributeValue === true) {
+        cookie.push("secure");
+      }
     }
 
-    return (document.cookie = `${key}=${value}${stringifiedAttributs}`);
+    return (document.cookie = cookie.join("; "));
   }
 
-  function get(key) {
-    const cookies = document.cookie ? document.cookie.split(";") : [];
-    console.log("cookies: ", cookies);
+  function get(name) {
+    const reg = new RegExp(`(^|;\\s*)(${name})=([^;]*)`);
+    const match = document.cookie.match(reg);
 
-    const jar = {};
-
-    for (let i = 0; i < cookies.length; i++) {
-      const parts = cookies[i].split("=");
-      const value = parts.slice(1).join("=");
-
-      if (value[0] === '"') {
-        value = value.slice(1, -1);
-      }
-
-      try {
-        // const foundKey =
-      } catch (e) {}
-    }
+    return match ? decodeURIComponent(match[3]) : null;
   }
 
-  function remove() {}
+  function remove(name) {
+    this.set(name, "", { expires: -1 });
+  }
 
-  return {
-    get,
-    set,
-    remove
-  };
+  return { get, set, remove };
 }
 
-export default init({}, {});
+export default standardBrowserEnv();
