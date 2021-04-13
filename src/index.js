@@ -2,7 +2,7 @@ import { isNumber } from "./utils";
 
 const MS_IN_A_DAY = 24 * 60 * 60 * 1000;
 
-function standardBrowserEnv() {
+function createCookie() {
   function set(name, value, attributes) {
     const cookie = [];
 
@@ -53,4 +53,4 @@ function standardBrowserEnv() {
   return { get, set, remove };
 }
 
-export default standardBrowserEnv();
+export default createCookie();
